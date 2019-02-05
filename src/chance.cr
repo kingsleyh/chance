@@ -2,23 +2,16 @@ class Chance
   include Comparable(Float64)
 
   getter odds : Percentage
-
   getter happens : Bool
-
-  getter event : Proc(String) = -> { ""}
-
-  # @event : Proc(String) = -> { ""}
-
-  # getter event : Proc(String, String) = Proc.new(String, String)
+  getter event : Proc(String) = ->{ "" }
 
   def initialize(percent)
     @odds = percent
     @happens = @odds.to_f > Random::Secure.rand(100)
   end
 
-  @@last_chance : Float64 = 0.0
-
   def self.case(*chances)
+    last_chance : Float64 = 0.0
     raise "Chances don't add to 100" unless chances.reduce(0) { |sum, chance| sum + chance.to_f } == 100
     ranges = [] of Range(Float64, Float64)
     chances = chances.to_a.sort_by { |c| c.to_f }
@@ -29,12 +22,12 @@ class Chance
         if i == 0
           0.0..chance
         elsif i == chances.size - 1
-          @@last_chance..100.0
-        elsif @@last_chance
-          @@last_chance..chance
+          last_chance..100.0
+        elsif last_chance
+          last_chance..chance
         end
       if r = range
-        @@last_chance = r.begin
+        last_chance = r.begin
         ranges << range
       end
     end
