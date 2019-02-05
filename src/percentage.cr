@@ -1,9 +1,9 @@
 class Percentage
-  include Comparable(Int32 | Float32 | Float64)
+  include Comparable(Int32 | Float64)
 
-  getter value : Int32 | Float32 | Float64
+  getter value : Int32 | Float64
 
-  def initialize(@value : Int32 | Float32 | Float64)
+  def initialize(@value : Int32 | Float64)
   end
 
   def of(number_or_percentage)
@@ -46,7 +46,7 @@ class Percentage
     @value <=> other.value
   end
 
-  def *(other : Percentage | Int32 | Float32 | Float64)
+  def *(other : Percentage | Int32 | Float64)
     other_value = other.is_a?(Percentage) ? other.value : other
     Percentage.new value * other_value
   end

@@ -1,12 +1,11 @@
 require "./spec_helper"
 
-First_chance = 50.percent.chance
+First_chance  = 50.percent.chance
 Second_chance = 50.percent.chance
-Good_chance = 90.percent.chance
-Fat_chance = 10.percent.chance # include Sarcasm
+Good_chance   = 90.percent.chance
+Fat_chance    = 10.percent.chance # include Sarcasm
 
 describe Chance do
-
   it "can be created from a Percentage" do
     Percentage.new(20).chance.should be_a(Chance)
   end
@@ -21,30 +20,52 @@ describe Chance do
     First_chance.should be < Good_chance
   end
 
-  # it "should be identical to another very similar Chance" do
-  #   begin
-  #     same_chance = 50.percent.chance
-  #   end while same_chance.happens? != First_chance.happens
-  #   First_chance.identical?(same_chance).should be true
-  # end
+  it "should be identical to another very similar Chance" do
+    same_chance = 50.percent.chance
+    while same_chance.happens? != First_chance.happens
+      same_chance = 50.percent.chance
+    end
+    First_chance.identical?(same_chance).should be_true
+  end
 
-  # it "should not be identical to another slightly different Chance" do
-  #   begin
-  #     @different_chance = 50.percent.chance
-  #   end while @different_chance.happens? == @chance.happens
-  #   @chance.identical?(@different_chance).should be false
-  # end
-  #
-  # context "case statement" do
-  #   it "renders a single outcome" do
-  #     outcome = Chance.case(
-  #       70.percent.chance.will {'snow'},
-  #       20.percent.chance.will {'sleet'},
-  #       8.percent.chance.will {'sun'},
-  #       2.percent.chance.will {'knives'}
-  #     )
-  #     %w(sun sleet snow knives).should include(outcome)
-  #   end
+  it "should not be identical to another slightly different Chance" do
+    different_chance = 50.percent.chance
+    while different_chance.happens? == First_chance.happens
+      different_chance = 50.percent.chance
+    end
+    First_chance.identical?(different_chance).should be_false
+  end
+
+  describe "case statement" do
+    it "renders a single outcome" do
+      outcome = Chance.case(
+        70.percent.chance.will { "snow" },
+        20.percent.chance.will { "sleet" },
+        8.percent.chance.will { "sun" },
+        2.percent.chance.will { "knives" }
+      )
+      %w(sun sleet snow knives).should contain(outcome)
+    end
+
+    it "should raise if odds add to less than 100" do
+      expect_raises(Exception, "Chances don't add to 100") {
+        Chance.case(
+          10.percent.chance.will { "rain" },
+          20.percent.chance.will { "sleet" }
+        )
+      }
+    end
+
+    it "should raise if odds add to more than 100" do
+      expect_raises(Exception, "Chances don't add to 100") {
+        Chance.case(
+          10.percent.chance.will { "rain" },
+          20.percent.chance.will { "sleet" },
+          90.percent.chance.will { "wind" }
+        )
+      }
+    end
+  end
   #
   #   it "generally evaluates to the expected outcome with stacked odds" do
   #     outcome = Chance.case(
