@@ -10,10 +10,6 @@ class Percentage
     number_or_percentage * (value / 100.0)
   end
 
-  def chance
-    Chance.new self
-  end
-
   def to_f
     @value.to_f
   end
@@ -50,5 +46,4 @@ class Percentage
     other_value = other.is_a?(Percentage) ? other.value : other
     Percentage.new value * other_value
   end
-
 end

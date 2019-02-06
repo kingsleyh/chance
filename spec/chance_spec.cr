@@ -1,13 +1,13 @@
 require "./spec_helper"
 
-First_chance  = 50.percent.chance
-Second_chance = 50.percent.chance
-Good_chance   = 90.percent.chance
-Fat_chance    = 10.percent.chance # include Sarcasm
+First_chance  = Chance(Nil).new(50.percent)
+Second_chance = Chance(Nil).new(50.percent)
+Good_chance   = Chance(Nil).new(90.percent)
+Fat_chance    = Chance(Nil).new(10.percent) # include Sarcasm
 
 describe Chance do
   it "can be created from a Percentage" do
-    Percentage.new(20).chance.should be_a(Chance)
+    Chance(Nil).new(Percentage.new(20)).should be_a(Chance(Nil))
   end
 
   it "has #odds expressed as a Percentage" do
@@ -21,28 +21,32 @@ describe Chance do
   end
 
   it "should be identical to another very similar Chance" do
-    same_chance = 50.percent.chance
+    same_chance = Chance(Nil).new(50.percent)
     while same_chance.happens? != First_chance.happens
-      same_chance = 50.percent.chance
+      same_chance = Chance(Nil).new(50.percent)
     end
     First_chance.identical?(same_chance).should be_true
   end
 
   it "should not be identical to another slightly different Chance" do
-    different_chance = 50.percent.chance
+    different_chance = Chance(Nil).new(50.percent)
     while different_chance.happens? == First_chance.happens
-      different_chance = 50.percent.chance
+      different_chance = Chance(Nil).new(50.percent)
     end
     First_chance.identical?(different_chance).should be_false
+  end
+
+  it "should work with of" do
+    Chance(String).new(100.percent).of {"rain"}.should eq("rain")
   end
 
   describe "case statement" do
     it "renders a single outcome" do
       outcome = Chance.case(
-        70.percent.chance.will { "snow" },
-        20.percent.chance.will { "sleet" },
-        8.percent.chance.will { "sun" },
-        2.percent.chance.will { "knives" }
+        Chance(String).new(70.percent).will { "snow" },
+        Chance(String).new(20.percent).will { "sleet" },
+        Chance(String).new(8.percent).will { "sun" },
+        Chance(String).new(2.percent).will { "knives" }
       )
       %w(sun sleet snow knives).should contain(outcome)
     end
@@ -50,8 +54,8 @@ describe Chance do
     it "should raise if odds add to less than 100" do
       expect_raises(Exception, "Chances don't add to 100") {
         Chance.case(
-          10.percent.chance.will { "rain" },
-          20.percent.chance.will { "sleet" }
+          Chance(String).new(10.percent).will { "rain" },
+          Chance(String).new(20.percent).will { "sleet" }
         )
       }
     end
@@ -59,61 +63,41 @@ describe Chance do
     it "should raise if odds add to more than 100" do
       expect_raises(Exception, "Chances don't add to 100") {
         Chance.case(
-          10.percent.chance.will { "rain" },
-          20.percent.chance.will { "sleet" },
-          90.percent.chance.will { "wind" }
+          Chance(String).new(10.percent).will { "rain" },
+          Chance(String).new(20.percent).will { "sleet" },
+          Chance(String).new(90.percent).will { "wind" }
         )
       }
     end
-  end
-  #
-  #   it "generally evaluates to the expected outcome with stacked odds" do
-  #     outcome = Chance.case(
-  #       0.01.percent.chance.will {'rain'},
-  #       99.99.percent.chance.will {'sleet'}
-  #     )
-  #     outcome.should == 'sleet'
-  #   end
-  #
-  #   it "only fires a single case block" do
-  #     @count = 0
-  #     outcome = Chance.case(
-  #       50.percent.chance.will {@count += 1},
-  #       50.percent.chance.will {@count += 1}
-  #     )
-  #     @count.should be 1
-  #   end
-  #
-  #   it "generally follows expected probabilities" do
-  #     @heads, @tails = 0, 0
-  #     10_000.times do
-  #       Chance.case(
-  #         50.percent.chance.will {@tails += 1},
-  #         50.percent.chance.will {@heads += 1}
-  #       )
-  #     end
-  #     10_000.should == @heads + @tails
-  #     (10_000 / 2 - @heads).abs.should be < 200
-  #   end
-  #
-  #   it "should raise if odds add to less than 100" do
-  #     lambda {
-  #       Chance.case(
-  #         10.percent.chance.will {'rain'},
-  #         20.percent.chance.will {'sleet'}
-  #       )
-  #     }.should raise_error
-  #   end
-  #
-  #   it "should raise if odds add to more than 100" do
-  #     lambda {
-  #       Chance.case(
-  #         10.percent.chance.will {'rain'},
-  #         20.percent.chance.will {'sleet'},
-  #         90.percent.chance.will {'sleet'}
-  #       )
-  #     }.should raise_error
-  #   end
-  # end
 
+    # This test will only pass 99.99% of the time!!
+    it "generally evaluates to the expected outcome with stacked odds" do
+      outcome = Chance.case(
+        Chance(String).new(0.01.percent).will { "rain" },
+        Chance(String).new(99.99.percent).will { "sleet" }
+      )
+      outcome.should eq("sleet")
+    end
+
+    it "only fires a single case block" do
+      count = 0
+      outcome = Chance.case(
+        Chance(Int32).new(50.percent).will { count += 1 },
+        Chance(Int32).new(50.percent).will { count += 1 }
+      )
+      count.should eq(1)
+    end
+
+    it "generally follows expected probabilities" do
+      heads, tails = 0, 0
+      10_000.times do
+        Chance.case(
+          Chance(Int32).new(50.percent).will { tails += 1 },
+          Chance(Int32).new(50.percent).will { heads += 1 }
+        )
+      end
+      10_000.should eq(heads + tails)
+      (10_000 / 2 - heads).abs.should be <= 200
+    end
+  end
 end
